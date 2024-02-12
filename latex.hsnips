@@ -4,7 +4,9 @@ function math(context) {
 }
 
 function dollarSign(context) {
-	return context.scopes.findLastIndex(s => s.startsWith("meta.math")) <= 2;
+	let count = 0;
+	context.scopes.forEach((v) => (v.startsWith("meta.math") && count++));
+	return count <= 1 && (context.scopes.findLastIndex(s => s.startsWith("meta.math")) <= 3 || (context.scopes.findLastIndex(s => s.startsWith("meta.function")) > 2 && context.scopes.findLastIndex(s => s.startsWith("meta.math")) - context.scopes.findIndex(s => s.startsWith("meta.function")) >= 2));
 }
 
 function cap(word) {
@@ -15,7 +17,6 @@ function myget(list, key) {
 	if (list.has(key)) return list.get(key);
 	else return key
 }
-
 const envArr = [];
 envArr.push(new Set([
 	"align\*",
@@ -343,11 +344,12 @@ snippet `\\([_^])` "Manual Sup/Subscript" A
 endsnippet
 
 context math(context)
-snippet `(?<=[a-zA-Z\d)}|\]])([_^])([a-zA-Z\d\\+-](?:[a-zA-Z\d+-]+| , )|(\(.*\))|((?:[a-zA-Z\d]|{.*})\1(?:[a-zA-Z\d]|\(.*\)|[\\+-][a-zA-Z\d]+)))` "Auto Sup/Subscript" A
+snippet `(?<=[a-zA-Z\d)}|\]])([_^])([\\+-][a-zA-Z\d]+(?:  )?|[a-zA-Z\d](?:[a-zA-Z\d+-]+|,  )|(\(.*\))|((?:[a-zA-Z\d]|{.*})\1(?:[a-zA-Z\d]|\(.*\)|[\\+-][a-zA-Z\d]+(?:  )?)))` "Auto Sup/Subscript" A
 ``
 let br = m[3] || m[4];
+m[2] = m[2].replaceAll("  ", " ");
 let pmn = m[2].search(/[+-]/g);
-let pm = pmn != -1;
+let pm = pmn != -1 && pmn != 0;
 let inner = br ? m[2] : (pm ? m[2].substring(0, pmn) + " " + m[2].substring(pmn) : m[2]);
 let r = m[1] + "{" + inner + snip.tabstop(1) + "}";
 rv = r;
@@ -474,7 +476,7 @@ snippet `array([1-9]{1})\ ([1-9]{1})` "Array environment" ibA
 endsnippet
 
 context math(context)
-snippet `(b|p)matrix([1-9]{1})\ ([1-9]{1})` "matrix" iwA
+snippet `(b|p)mat([1-9]{1})\ ([1-9]{1})` "matrix" iwA
 \begin{``rv = m[1]``matrix}``
 	let order = 1;
 	let nrow = m[2];
