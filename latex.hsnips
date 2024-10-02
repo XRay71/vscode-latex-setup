@@ -1,52 +1,73 @@
 global
 function math(context) {
-	return context.scopes.findLastIndex(s => s.startsWith("meta.math")) > context.scopes.findLastIndex(s => s.startsWith("comment") || s.startsWith("meta.text.normal.tex"));
+	const mathFunctionLastIndex = context.scopes.findLastIndex(s => s.startsWith("meta.math")),
+		normalFunctionlastIndex = context.scopes.findLastIndex(s => s.startsWith("comment") || s.startsWith("meta.text.normal.tex"));
+	return mathFunctionLastIndex > normalFunctionlastIndex;
+}
+
+function list(context) {
+	const listFunctionLastIndex = context.scopes.findLastIndex(s => s.startsWith("meta.function.environment.list"));
+	return listFunctionLastIndex > -1;
 }
 
 function dollarSign(context) {
-	let count = 0;
-	context.scopes.forEach((v) => (v.startsWith("meta.math") && count++));
-	return count <= 1 && (context.scopes.findLastIndex(s => s.startsWith("meta.math")) <= 3 || (context.scopes.findLastIndex(s => s.startsWith("meta.function")) > 2 && context.scopes.findLastIndex(s => s.startsWith("meta.math")) - context.scopes.findIndex(s => s.startsWith("meta.function")) >= 2));
+	let numMathFunctions = 0;
+	context.scopes.forEach(v => v.startsWith("meta.math") && numMathFunctions++);
+	const mathFunctionLastIndex = context.scopes.findLastIndex(s => s.startsWith("meta.math")),
+		metaFunctionLastIndex = context.scopes.findLastIndex(s => s.startsWith("meta.function")),
+		metaFunctionFirstIndex = context.scopes.findIndex(s => s.startsWith("meta.function"));
+	return numMathFunctions < 2 && (mathFunctionLastIndex < 4 || (metaFunctionLastIndex > 2 && mathFunctionLastIndex - metaFunctionFirstIndex > 1));
 }
 
-function cap(word) {
+function capitaliseWord(word) {
 	return word.charAt(0).toUpperCase() + word.substring(1);
 }
 
-function myget(list, key) {
+function getReplacement(list, key) {
 	if (list.has(key)) return list.get(key);
 	else return key
 }
-const envArr = [];
-envArr.push(new Set([
+
+const environmentNameArray = [];
+environmentNameArray.push(new Set([
 	"align\*",
 	"answer",
 	"claim",
 	"conjecture",
 	"explanation",
 	"intuition",
-	"notation",
-	"note",
-	"notice",
-	"observation",
-	"problem",
-	"question",
-	"recap",
-	"remark",
-	"solution",
 	"ncorollary",
 	"ndefinition",
 	"nexample",
 	"nexercise",
 	"nexplanation",
 	"nlemma",
+	"notation",
+	"note",
+	"notice",
 	"nproof",
 	"nproperty",
 	"nproposition",
 	"ntheorem",
+	"mcorollary",
+	"mdefinition",
+	"mexample",
+	"mexercise",
+	"mexplanation",
+	"mlemma",
+	"mproof",
+	"mproperty",
+	"mproposition",
+	"mtheorem",
+	"observation",
+	"problem",
+	"question",
+	"recap",
+	"remark",
+	"solution",
 	])); // "simple" environments
 
-envArr.push(new Set([
+environmentNameArray.push(new Set([
 	"align\*",
 	"answer",
 	"claim",
@@ -64,7 +85,7 @@ envArr.push(new Set([
 	"solution",
 	])); // "unnumbered" environments
 
-envArr.push(new Map([
+environmentNameArray.push(new Map([
 	["ncorollary", "corollary"],
 	["ndefinition", "definition"],
 	["nexample", "example"],
@@ -75,37 +96,55 @@ envArr.push(new Map([
 	["nproperty", "property"],
 	["nproposition", "proposition"],
 	["ntheorem", "theorem"],
+	["mcorollary", "corollary"],
+	["mdefinition", "definition"],
+	["mexample", "example"],
+	["mexercise", "exercise"],
+	["mexplanation", "explanation"],
+	["mlemma", "lemma"],
+	["mproof", "proof"],
+	["mproperty", "property"],
+	["mproposition", "proposition"],
+	["mtheorem", "theorem"],
 	])); 
 	
-const phrDict = new Map([
-	["wrt", "with regard to"],
-	["s.t.", "such that"],
+const phrasesArray = new Map([
 	["lhs", "left hand side"],
 	["rhs", "right hand side"],
+	["s.t.", "such that"],
+	["wrt", "with regard to"],
 	]);
 
-const lisArr = [];
-lisArr.push(new Map([
-	["list", "itemize"],
-	["blist", "itemize"],
+const listTypeArray = [];
+listTypeArray.push(new Map([
 	["alist", "enumerate"],
-	["nlist", "enumerate"],
+	["blist", "itemize"],
+	["dlist", "itemize"],
 	["ilist", "enumerate"],
+	["nlist", "enumerate"],
+	["list", "enumerate"],
 	]));
-lisArr.push(new Map([
-	["list", "[label=(--)]"],
+listTypeArray.push(new Map([
+	["alist", "[label=(\\alph*)]"],
 	["blist", ""],
-	["alist", ""],
-	["nlist", "[label=(\\arabic*)]"],
+	["dlist", "[label=--]"],
 	["ilist", "[label=(\\textit{\\roman*})]"],
+	["nlist", "[label=(\\arabic*)]"],
+	["list", ""],
 	]));
 
-const typDict = new Map([
+const textTypeArray = new Map([
 	["^_", "overline"],
 	["^.", "dot"],
+	["^2.", "ddot"],
+	["^3.", "dddot"],
+	["^4.", "ddddot"],
 	["^^", "hat"],
 	["^>", "vec"],
 	["^~", "widetilde"],
+	["bold", "textbf"],
+	["emphasis", "emph"],
+	["italic", "textit"],
 	["mbb", "mathbb"],
 	["mbf", "mathbf"],
 	["mbm", "bm"],
@@ -113,137 +152,161 @@ const typDict = new Map([
 	["mfrk", "mathfrak"],
 	["mrm", "mathrm"],
 	["mscr", "mathscr"],
-	["bold", "textbf"],
-	["emphasis", "emph"],
-	["italic", "textit"],
 	["strike", "sout"],
 	]);
 	
-const symDict = new Map([
-	["--", "setminus" ],
-	["-+", "mp" ],
+const symbolNameArray = new Map([
+	["--", "setminus"],
+	["-+", "mp"],
 	["->", "to"],
-	["::", "colon" ],
-	[":=", "coloneqq" ],
+	["::", "colon"],
+	[":=", "coloneqq"],
 	["!<", "nless"],
 	["!<=", "nleq"],
-	["!=", "neq" ],
+	["!=", "neq"],
 	["!>", "ngtr"],
 	["!>=", "ngeq"],
 	["!|-", "nvDash"],
-	["!||", "nmid" ],
-	["...", "dots" ],
+	["!||", "nmid"],
+	["...", "dots"],
 	["'", "prime"],
-	["@>", "hookrightarrow" ],
+	["@>", "hookrightarrow"],
 	["*", "ast"],
-	["+-", "pm" ],
+	["\\\\", "\\\\\n"],
+	["+-", "pm"],
 	["<->", "leftrightarrow"],
+	["<-->", "longleftrightarrow"],
+	["<=>", "Leftrightarrow"],
+	["<==>", "Longleftrightarrow"],
 	["<<", "ll"],
 	["<=", "leq"],
-	["=:", "eqqcolon" ],
+	["=:", "eqqcolon"],
 	["=<", "impliedby"],
-	["==", "equiv" ],
+	["==", "equiv"],
 	["=>", "implies"],
 	[">=", "geq"],
 	[">>", "gg"],
 	["|-", "vDash"],
 	["|=", "models"],
 	["|>", "mapsto"],
-	["||", "mid" ],
-	["~-", "simeq" ],
-	["~=", "cong" ],
+	["||", "mid"],
+	["|\\", "parallel"],
+	["~-", "simeq"],
+	["~=", "cong"],
 	["~>", "leadsto"],
-	["~~", "approx" ],
+	["~~", "approx"],
 	["ems", "varnothing"],
-	["o*", "otimes" ],
-	["o+", "oplus" ],
-	["\\\\", "\\\\\n" ],
+	["o*", "otimes"],
+	["o+", "oplus"],
+	["\\T", "intercal"],
 	]);
 
-const limDict = new Map([
-	["absl", "\\vert"],
-	["absr", "\\vert"],
+const limitSymbolsArray = new Map([
 	["Absl", "\\left\\vert"],
+	["absl", "\\vert"],
 	["Absr", "\\right\\vert"],
-	["ceill", "\\lceil"],
-	["ceilr", "\\rceil"],
-	["Ceill", "\\left\\lceil"],
-	["Ceilr", "\\right\\rceil"],
-	["floorl", "\\lfloor"],
-	["floorr", "\\rfloor"],
-	["Floorl", "\\left\\lFloor"],
-	["Floorr", "\\right\\rFloor"],
-	["lral", "\\left\\langle"],
-	["lrar", "\\right\\rangle"],
-	["lrbl", "\\left["],
-	["lrbr", "\\right]"],
-	["lrcl", "\\left{"],
-	["lrcr", "\\right}"],
-	["lrpl", "\\left("],
-	["lrpr", "\\right)"],
-	["norml", "\\lVert"],
-	["normr", "\\rVert"],
-	["Norml", "\\left\\lVert"],
-	["Normr", "\\right\\rVert"],
+	["absr", "\\vert"],
 	["cap", "bigcap"],
 	["Cap1", "i"],
 	["Cap2", " = "],
 	["Cap3", "1"],
+	["ceill", "\\lceil"],
+	["Ceill", "\\left\\lceil"],
+	["ceilr", "\\rceil"],
+	["Ceilr", "\\right\\rceil"],
 	["cup", "bigcup"],
 	["Cup1", "i"],
 	["Cup2", " = "],
 	["Cup3", "1"],
+	["Floorl", "\\left\\lFloor"],
+	["floorl", "\\lfloor"],
+	["floorr", "\\rfloor"],
+	["Floorr", "\\right\\rFloor"],
 	["lim1", "n"],
 	["lim2", " \\to "],
 	["lim3", "\\infty"],
+	["lral", "\\left\\langle"],
+	["lrar", "\\right\\rangle"],
+	["lrbl", "\\left["],
+	["lrbr", "\\right]"],
+	["lrcl", "\\left\\{"],
+	["lrcr", "\\right\\\\}"],
+	["lrpl", "\\left("],
+	["lrpr", "\\right)"],
+	["lrpv", "\\left|"],
+	["lrpv", "\\right|"],
+	["Norml", "\\left\\lVert"],
+	["norml", "\\lVert"],
+	["Normr", "\\right\\rVert"],
+	["normr", "\\rVert"],
 	["prod1", "i"],
-	["prod2", ""],
 	["Prod1", "i"],
 	["Prod2", " = "],
+	["prod2", ""],
 	["Prod3", "1"],
 	["sum1", "i"],
-	["sum2", ""],
 	["Sum1", "i"],
 	["Sum2", " = "],
+	["sum2", ""],
 	["Sum3", "1"],
+	["<>l", "\\langle"],
+	["<>r", "\\rangle"],
 	]);
 
-const argDict = new Map([
-	["bin", "binom"],
-	["choose", "binom"],
-	["text", "text"],
-	["^\\^", "overset"],
+const argumentFunctionArray = new Map([
 	["__", "underset"],
 	["//", "frac"],
+	["^\\^", "overset"],
+	["bin", "binom"],
+	["choose", "binom"],
+	["color", "textcolor"],
+	["colour", "textcolor"],
+	["text", "text"],
 	]);
 
 endglobal
 
+priority 2
 context dollarSign(context)
 snippet `(?<!\\)\$(?!.)` "Inline Math" A
-\\( $1 \\)$0
+\\( $1 \\)
 endsnippet
 
+priority 2
+context math(context)
+snippet `(?<!\\)\$(?!.)` "Explicit Dollar Sign" A
+\\\$
+endsnippet
+
+priority 2
 context !math(context)
 snippet dm "Display Math" A
 \\[
 	$1
-\\]$0
+\\]
+
 endsnippet
 
+priority 2
 snippet \\ "New Line" iA
 \\\\
-$0
+
 endsnippet
 
-snippet {} "Literal Curly Brackets" iA
-\\{ $1 \\}$0
+priority 2
+snippet {} "Explicit Curly Brackets" iA
+\\{ $1 \\}
 endsnippet
 
 snippet \beg "Create Enviroment" iA
-\\begin{${1:example}}
-	$2
-\\end{${1:example}}$0
+\\begin{${1:example}}$2
+	$3
+\\end{${1:example}}
+
+endsnippet
+
+snippet \hyref "Create Reference" iA
+\\hyperref[$1]{$1}
 endsnippet
 
 snippet fig "Figure Environment" bA
@@ -253,286 +316,450 @@ snippet fig "Figure Environment" bA
 	\\caption{$3}
 	\\label{Figure $4}
 \\end{figure}
+
 endsnippet
 
-snippet `\\(n)?codeblock` "Code Enviroment" A
-\\begin{lstlisting}[``rv = m[1] ? "numbers=none, " : ""``language=${1:C}]
+snippet \codeblock "Code Environment" iA
+\\begin{lstlisting}[language=${1:C++}]
 	$0
 \\end{lstlisting}
+
+endsnippet
+
+context !math(context)
+snippet `(\d)column` "Multicol Environment" A
+\\begin{multicols}{``rv = m[1]``}
+[\\texorpdfstring{
+$1
+}{}\vspace{-15px}]
+``
+let order = 2,
+	r = "";
+	for (let i = 1; i < m[1]; i++)
+		r += snip.tabstop(order++) + "\n\\vfill\\columnbreak\n";
+	r += snip.tabstop(order++) + "\n\\columnbreak";
+	rv = r;
+``
+\end{multicols}\vspace{-15px}
+endsnippet
+
+context math(context)
+snippet `(?:(?<=[\(\[\s])([^\s\(\[]+))?(\d)\.{2}` "List of Terms" iA
+``
+const term = m[1] ? m[1].replaceAll("\}", "\\\}") : "";
+let order = 1,
+	r = "";
+	for (let i = 1; i <= m[2]; i++)
+		r += `${snip.tabstop(order++, (term ? `${term}_${i}` : ""))}, `;
+	r += `\\dots, ${snip.tabstop(order, (term ? `${term}_k` : ""))}`;
+	rv = r;
+``
 endsnippet
 
 snippet `\\([abin]?list)(\d)` "List Environments" A
 ``
-let name = myget(lisArr[0], m[1]), label = myget(lisArr[1], m[1]);
-let order = 1;
-let r =  "\\begin{" + name + "}" + label + "\n";
+const name = getReplacement(listTypeArray[0], m[1]),
+	label = getReplacement(listTypeArray[1], m[1]);
+let	order = 1,
+	r = `\\begin{${name}}${label}\n`;
 	for (let i = 0; i < m[2]; i++)
-		r += "	\\item " + snip.tabstop(order++) + "\n";
-	r += "\\end{" + name + "}";
-rv = r;
-``$0
+		r += `	\\item ${snip.tabstop(order++)}\n`;
+	r += `\\end{${name}}`;
+	rv = r;
+``
 endsnippet
 
-snippet `\\(n?(?:corollary|definition|example|exercise|explanation|lemma|proof|property|proposition|theorem)|(?:align\*|answer|claim|conjecture|intuition|notation|note|notice|observation|problem|question|recap|remark|solution|split))` "Common Environments" A
+context list(context)
+snippet `(?<=\\item ).*(?:\\item)$` "Add List Item (Single Line)" A
 ``
-let name = myget(envArr[2], m[1]), label = cap(name) + " \\the" + name;
-let toc = envArr[0].has(m[1]), num = !envArr[1].has(m[1]);
-let order = 1;
-let r =  "\\begin{" + name + "}"
-	r += (toc ? "" : "[" + snip.tabstop(order) + "]") 
-	r += (num ? "\\label{" + label + "}" : "") + "\n";
-    r += (toc ? "" : "\\addcontentsline{toc}{subsection}{\\texorpdfstring{" + label + " \\ - " + snip.tabstop(order++) + "}{}}\n");
-	r += snip.tabstop(order) + "\n";
-	r += "\\end{" + name + "}";
-rv = r;
-``$0
+const fixedBrackets = m[0].replace("\\item", "").replaceAll("\\\}", "\\\\\}").replaceAll("\}", "\\\}").replaceAll(/(?<=\s)\\\\(?=\s)/g, "\\\\\\\\");
+rv = snip.tabstop(1, fixedBrackets) + "\n\\item ";
+``
+endsnippet
+
+context list(context)
+snippet `^((?:\s)*)(?:\\item )((.|\n))*(?:\\item)$` "Add List Item (Multi-line)" MA
+``
+const fixedBrackets = m[0].replaceAll("\\\}", "\\\\\}").replaceAll("\}", "\\\}").replaceAll(/(?<=\s)\\\\(?=\s)/g, "\\\\\\\\");
+let firstLineWhitespace = m[1];
+const splitByLineTrimmed = fixedBrackets.split("\n").map((e) => {
+		const nonWhite = e.search(/[^\s]/g);
+		if (nonWhite != -1 && nonWhite < firstLineWhitespace.length)
+			firstLineWhitespace = e.substring(0, e.search(/[^\s]/g));
+		return e;
+		}),
+	rejoinedFormatted = splitByLineTrimmed.join("\n");
+let counter = 0,
+	index = rejoinedFormatted.length,
+	output = "",
+	begs = rejoinedFormatted.lastIndexOf("\\begin{enumerate\\}", index),
+	ends = rejoinedFormatted.lastIndexOf("\\end{enumerate\\}", index),
+	items = rejoinedFormatted.lastIndexOf("\\item", index - 6);
+
+if (items > begs && items > ends) {
+	const sliced = rejoinedFormatted.slice(0, -5);
+	index = sliced.lastIndexOf("\\item", index);
+	output = sliced.slice(0, index + 6) + snip.tabstop(1, sliced.slice(index + 6)) + "\n" + firstLineWhitespace + "\\item ";
+}
+
+while (!output && (begs != -1 || ends != -1)) {
+	begs = rejoinedFormatted.lastIndexOf("\\begin{enumerate\\}", index);
+	ends = rejoinedFormatted.lastIndexOf("\\end{enumerate\\}", index);
+	if (ends > begs) {
+		counter++;
+		index = ends - 1;
+	} else if (begs > ends) {
+		counter--;
+		index = begs - 1;
+	}
+	if (counter < 0) {
+		output = rejoinedFormatted;
+		counter = 0;
+	} else if (counter == 0) {
+		items = rejoinedFormatted.lastIndexOf("\\item", index);
+		begs = rejoinedFormatted.lastIndexOf("\\begin{enumerate\\}", index);
+		ends = rejoinedFormatted.lastIndexOf("\\end{enumerate\\}", index);
+		if (items > begs && items > ends) {
+			index = rejoinedFormatted.lastIndexOf("\\item", index);
+			firstLineWhitespace = "";
+			let i = index - 1;
+			while (rejoinedFormatted.charAt(i) != '\n' && /\s/.test(rejoinedFormatted.charAt(i))) {
+				firstLineWhitespace += rejoinedFormatted.charAt(i);
+				i--;
+			}
+			output = rejoinedFormatted.slice(0, index + 6) + snip.tabstop(1, rejoinedFormatted.slice(index + 6, -5)) + "\n" + firstLineWhitespace + "\\item";
+		}
+	}
+}
+if (!counter && !output)
+	output = snip.tabstop(1, rejoinedFormatted.slice(0, -5)) + "\n" + firstLineWhitespace + "\\item ";
+else if (counter && !output)
+	output = rejoinedFormatted;
+
+rv = output;
+``
+endsnippet
+
+snippet `\\(([nm])?(?:corollary|definition|example|exercise|explanation|lemma|proof|property|proposition|theorem)|(?:align\*|answer|claim|conjecture|intuition|notation|note|notice|observation|problem|question|recap|remark|solution|split))` "Common Environments" A
+``
+const name = getReplacement(environmentNameArray[2], m[1]),
+	label = capitaliseWord(name) + " \\the" + name,
+	toc = !environmentNameArray[0].has(m[1]), 
+	nam = m[2] == 'm', 
+	num = !environmentNameArray[1].has(m[1]);
+let	order = 1;
+	rv = `\\begin{${name}}`
+	+ `${(toc ? `[\\texorpdfstring{${snip.tabstop(order)}}{}]` : "")}` 
+	+ `${(num ? `\\label{${label}}\n` : "")}` 
+	+ `${(toc ? `\\addcontentsline{toc}{subsection}{\\texorpdfstring{${label} \\ - ${snip.tabstop(order++)}}{}}\n` : "")}`
+	+ `${(nam ? `\\addcontentsline{toc}{subsection}{\\texorpdfstring{${label}}{}}\n` : "")}`
+	+ `${num ? "" : "\n"}${snip.tabstop(order)}\n`
+	 + `\\end{${name}}`;
+``
+
 endsnippet
 
 snippet `(wrt|s\.t\.|lhs|rhs)` "Phrases" A
-``rv = myget(phrDict, m[1])``$0
+\\text{``rv = getReplacement(phrasesArray, m[1])``}
 endsnippet
 
 priority 1
 context math(context)
-snippet `(?<![\\a-zA-Z])(alpha|beta|[gG]amma|[dD]elta|(?:[eE]|vare)psilon|eta|zeta|(?:[tT]|vart)heta|iota|kappa|[lL]ambda|[mn]u|[xX]i|[pP](?:i|si)|(?:r|varr)ho|[sS]igma|tau|[uU]psilon|(?:[pP]|varp)hi|chi|[oO]mega)` "Greek Characters" A
-\\``rv = m[1]``$0
+snippet `(?<![\\a-zA-Z])(alpha|beta|chi|[dD]elta|epsilon|z?eta|[gG]amma|iota|kappa|[lL]ambda|[mn]u|[oO]mega|[pP][hs]?i|rho|[sS]igma|tau|[tT]heta|[uU]psilon|var(?:epsilon|kappa|phi|pi|rho|sigma|theta)|[xX]i)` "Greek Characters" A
+\\``rv = m[1]``
 endsnippet
 
 priority 1
 context math(context)
-snippet `(?<![\\a-zA-Z])(aleph|ast|ell|exists|infty|forall|lnot|nabla|partial|prime|qed|star|triangle|varnothing)` "Priority Characters" A
-\\``rv = m[1]``$0
+snippet `(?<![\\a-zA-Z])(aleph|ast|because|ell|emptyset|exists|infty|int|iint|iiint|forall|lnot|nabla|oint|parallel|partial|prime|propto|qed|square|star|therefore|triangle|varnothing)` "Priority Characters" A
+\\``rv = m[1]``
 endsnippet
 
 context math(context)
-snippet `(?<![\\a-zA-Z])((?:arc)?(?:cos|cot|csc|sec|sin|tan)|approx|b(?:igcap|igcup|igwedge|igvee)|c(?:ap|irc|olon|oloneqq|ong|up)|[cdv]?dots?|e(?:quiv|qqcolon)|i(?:ff|mpliedby|mplies|nf|nt)|g(?:cd|eq)|l(?:and|angle|eq|eft|n|og|or)|m(?:apsto|ax|id|in|odels)|n(?:eq|geq|leq|mid|otin|vDash|subseteq|supseteq)|o(?:plus|times)|perp|r(?:angle|ight)|s(?:etminus|im|imeq|qcup|ubset|ubseteq|ubsetneq|up|upset|upseteq|upsetneq)|t(?:imes|op)|v(?:Dash|ee)|wedge)` "Math Macros" A
-\\``rv = m[1]``$0
+snippet `(?<![\\a-zA-Z])(not)?((?:arc)?(?:cos|cot|csc|sec|sin|tan)|approx|b(?:igcap|igcup|igwedge|igvee)|c(?:ap|irc|olon|oloneqq|ong|ross|up)|[cdv]?dots?|e(?:quiv|qqcolon)|i(?:ff|mpliedby|mplies|n|nf)|g(?:cd|eq)|l(?:and|angle|eq|eft|n|og|or)|m(?:apsto|ax|id|in|odels)|n(?:eq|geq|leq|mid|otin|vDash|subseteq|supseteq)|o(?:plus|times)|perp|r(?:angle|ight)|s(?:etminus|im|imeq|qcup|ubset|ubseteq|ubsetneq|up|upset|upseteq|upsetneq)|t(?:imes|op)|v(?:Dash|ee)|wedge)` "Math Macros" A
+\\``rv = (m[1] ? "not\\" : "") + m[2]``
 endsnippet
 
 context math(context)
-snippet `(?<![a-zA-Z])((?:arc)?(?:cos|cot|csc|sec|sin|tan)|bigcap|bigcup|exp|inf|int|gcd|lim|ln|log|max|min|pmod|prod|sum|sup)(_(?:{.*}|[^{\s]|\\[a-zA-Z]+)(?:\^(?:{.*}|[^{\s]|\\[a-zA-Z]+))?|\^(?:{.*}|[^{\s]|\\[a-zA-Z]+)(?:_(?:{.*}|[^{\s]|\\[a-zA-Z]+))?)?  ` "Function Auto-Brackets" A
-``rv = m[1] + (m[2] ? m[2] : "")``\\left( $1 \\right)$0
+snippet `(?<![a-zA-Z])((?:arc)?(?:cos|cot|csc|sec|sin|tan)|bigcap|bigcup|exp|inf|int|iint|iiint|gcd|lim|ln|log|max|min|oint|pmod|prod|sum|sup)(_(?:{.*}|[^{\s]|\\[a-zA-Z]+)(?:\^(?:{.*}|[^{\s]|\\[a-zA-Z]+))?|\^(?:{.*}|[^{\s]|\\[a-zA-Z]+)(?:_(?:{.*}|[^{\s]|\\[a-zA-Z]+))?)?  ` "Function Auto-Brackets" A
+``rv = m[1] + (m[2] ? m[2] : "")``\\left${1:(} $2 \\right${0:)}
 endsnippet
 
 context math(context)
-snippet `(m(?:bb|bf|bm|cal|frk|rm|scr)|\^[_.^>~]|text)` "Math Types" A
-\\``rv = myget(typDict, m[1])``{$1}$0
+snippet `(m(?:bb|bf|bm|cal|frk|rm|scr)|\^(?:[_^>~]|[234]?\.)|text)` "Math Types" A
+\\``rv = getReplacement(textTypeArray, m[1])``{$1}
 endsnippet
 
-snippet `\\(bold|chapter|emphasis|italic|section|underline|strike)` "Non-math Types" A
-\\``rv = myget(typDict, m[1])``{$1}$0
-endsnippet
-
-context math(context)
-snippet `(-[-+>]|:[:=]|!(?:[<>=]|<=|>=|\|-|\|\|)|\.\.\.|@>|\+-|<(?:->|[<=])|=[:<=>]|>[=>]|\|[-=>|]|~[-=>~]|ems|o[+*])` "Symbols" A
-\\``rv = myget(symDict, m[1])``$0
+snippet `\\(bold|chapter|emphasis|italic|section|textbf|textit|underline|strike)` "Non-math Types" A
+\\``rv = getReplacement(textTypeArray, m[1])``{$1}
 endsnippet
 
 context math(context)
-snippet `(l(?:ra|rp|rc|rb)|[cC]eil|[fF]loor|[aA]bs|[nN]orm|<>)` "Dynamic Limiters" A
-``rv = myget(limDict, (m[1] + "l")) + " " + snip.tabstop(1) + " " + myget(limDict, (m[1] + "r"))``$0
+snippet `(not)?(-[-+>]|:[:=]|!(?:[<>=]|<=|>=|\|-|\|\|)|\.\.\.|@>|\+-|<(?:->|-->|<|=|=>|==>)|=[:<=>]|>[=>]|\|[-=>|\\]|~[-=>~]|ems|o[+*])` "Symbols" A
+\\``rv = (m[1] ? "not\\" : "") + getReplacement(symbolNameArray, m[2])``
 endsnippet
 
 context math(context)
-snippet `([_^])(['*])` "Quick Symbols" A
-``rv = m[1]``{ \``rv = myget(symDict, m[2])``$1 }$0
+snippet `(lr[apcbv]|[cC]eil|[fF]loor|[aA]bs|[nN]orm|<>)` "Dynamic Limiters" A
+``rv = `${getReplacement(limitSymbolsArray, (m[1] + "l"))} ${snip.tabstop(1)} ${getReplacement(limitSymbolsArray, (m[1] + "r"))}```
+endsnippet
+
+priority 2
+context math(context)
+snippet `([_^])(['*]|(\\T))` "Quick Symbols" A
+``rv = `${m[1]}{ \\${getReplacement(symbolNameArray, m[2])}```$1 }
 endsnippet
 
 context math(context)
 snippet `\\([_^])` "Manual Sup/Subscript" A
-``rv = m[1]``{ $1 }$0
+``rv = m[1]``{ $1 }
 endsnippet
 
+priority 2
 context math(context)
-snippet `(?<=[a-zA-Z\d)}|\]])([_^])([\\+-][a-zA-Z\d]+(?:  )?|[a-zA-Z\d](?:[a-zA-Z\d+-]+|,  )|(\(.*\))|((?:[a-zA-Z\d]|{.*})\1(?:[a-zA-Z\d]|\(.*\)|[\\+-][a-zA-Z\d]+(?:  )?)))` "Auto Sup/Subscript" A
+snippet `(?<=(?:[a-zA-Z\d)}|\]]([_^])))([a-zA-Z\d+-])\1([a-zA-Z\d\\+-]|(\(.*\)))` "Auto Sup/Subscript (Nested, No Brackets)" A
 ``
-let br = m[3] || m[4];
-m[2] = m[2].replaceAll("  ", " ");
-let pmn = m[2].search(/[+-]/g);
-let pm = pmn != -1 && pmn != 0;
-let inner = br ? m[2] : (pm ? m[2].substring(0, pmn) + " " + m[2].substring(pmn) : m[2]);
-let r = m[1] + "{" + inner + snip.tabstop(1) + "}";
-rv = r;
-``$0
+const operator = m[1],
+	base = m[2],
+	contents = m[3],
+	brackets = m[4];
+	rv = brackets ? `{${base}${operator}{${contents}${snip.tabstop(1)}}${snip.tabstop(2)}}` : `{${base}${operator}${contents}${snip.tabstop(1)}}`;
+``
+endsnippet
+
+priority 2
+context math(context)
+snippet `(?<=(?:[a-zA-Z\d)}|\]]([_^])))({[a-zA-Z\d\\+={}^_-]+})\1([a-zA-Z\d\\+-]|(\(.*\)))` "Auto Sup/Subscript (Nested, Brackets)" A
+``
+const operator = m[1],
+	base = m[2],
+	contents = m[3],
+	brackets = m[4];
+let	bracketnum = 0,
+	index = 0;
+	for (let char of base) {
+		index++;
+		if (char == '{') bracketnum++;
+		else if (char == '}') bracketnum--;
+		if (index == base.length) break;
+		if (bracketnum <= 0) 
+			rv = brackets ? `${base}${operator}{${contents}${snip.tabstop(1)}}` : `${base}${operator}${contents}`;
+	}
+	rv = `{${base}${operator}{${contents}${snip.tabstop(1)}}${snip.tabstop(2)}}`;
+``
+endsnippet
+
+priority 2
+context math(context)
+snippet `(?<=[a-zA-Z\d)}|\]])([_^])([\\+-][a-zA-Z\d]+(?:  )?|[a-zA-Z\d](?:[a-zA-Z=\d+-]|,?  )|(\(.*\)))` "Auto Sup/Subscript (Base)" A
+``
+const operator = m[1],
+	trimmedcontent = m[2].replaceAll("  ", " "),
+	contents = (trimmedcontent == "mu" || trimmedcontent == "nu" || trimmedcontent.toLowerCase() == "pi" || trimmedcontent.toLowerCase() == "xi") ? "\\" + m[2].replaceAll("  ", " ") : m[2].replaceAll("  ", " "),
+	plussubs = contents.search(/[=+-]/g),
+	plusmins = plussubs != -1 && plussubs != 0,
+	brackets = m[3],
+	inner = brackets ? contents : (plusmins ? `${contents.substring(0, plussubs)} ${contents.substring(plussubs)} ` : contents);
+	rv = `${operator}{${inner}${snip.tabstop(1)}}`;
+``
 endsnippet
 
 context math(context)
 snippet `\\piecewise([2-9])` "Piecewise Functions" A
 \\begin{dcases}
 ``
-let order = 1, r = "";
-for (var i = 0; i < m[1] - 1; i++)
-	r += "	" + snip.tabstop(order++) + ", &\\text{ if } " + snip.tabstop(order++) + " ; \n";
-r += "	" + snip.tabstop(order) + ", &\\text{ otherwise.}"
-rv = r;
+let order = 1, 
+	r = "";
+	for (let i = 0; i < m[1] - 1; i++)
+		r += `	${snip.tabstop(order++)}, &\\text{ if } ${snip.tabstop(order++)} \\ ; \\\\\\\n`;
+	r += `	${snip.tabstop(order++)}, &\\text{ if } ${snip.tabstop(order++)} \\ .`;
+	rv = r;
 ``
-\\end{dcases}$0
+\\end{dcases}
 endsnippet
 
 context math(context)
-snippet `(n)?sqrt` "Roots" A
-\``rv = m[1] ? "sqrt[" + snip.tabstop(1) + "]" : "sqrt"``{$2}$0
+snippet `(\d)?(?:sqrt)` "Roots" A
+``rv = `\\sqrt${!m[1] ? "" : `[${m[1]}]`}{${snip.tabstop(1)}}```
 endsnippet
 
 context math(context)
 snippet `(\d)?(p)?dif` "Differentials" A
 ``
-let name =  m[2] ? "partial" : "mathrm{d}";
-rv = "\\frac{\\" + name + (m[1] ? "^{" + m[1] + "} " : " ") + snip.tabstop(1) + "}{\\" + name + " " + snip.tabstop(2, "x") + (m[1] ? "^{" + m[1] + "}}" : "}")
-``$0
+const name = m[2] ? "partial" : "mathrm{d}";
+rv = `\\frac{\\${name}${(m[1] ? `^{${m[1]}} ` : " ")}${snip.tabstop(1)}}{\\${name} ${snip.tabstop(2, "x")}${(m[1] ? `^{${m[1]}}}` : "}")}`
+``
 endsnippet
 
 context math(context)
 snippet dint "Definite Integral" A
-\int_{${1:-\infty}}^{${2:\infty}} ${3} \,\mathrm{d}${4:x}$0
+\int_{${1:-\infty}}^{${2:\infty}} ${3} \, \mathrm{d}${4:x}
+endsnippet
+
+context math(context)
+snippet iint "Indefinite Integral" A
+\int ${1} \, \mathrm{d}${2:x}
+endsnippet
+
+context math(context)
+snippet `\\systeme([1-9])` "System of Equations" A
+\systeme$1{
+``
+let order = 2,
+	r = "";
+	for (let i = 0; i < m[1] - 1; i++)
+		r += snip.tabstop(order++) + ",\n";
+	r += snip.tabstop(order++) + "\n";
+	rv = r;
+``}
 endsnippet
 
 context math(context)
 snippet `(?<![\\a-zA-Z])([Ss]um|[Pp]rod|lim|Cup|Cap)` "Sums, Limits, Products" A
 ``
-let upper = m[1] === cap(m[1]);
-let order = 1;
-let name = myget(limDict, m[1].toLowerCase());
-let one = myget(limDict, m[1] + "1"), two = myget(limDict, m[1] + "2");
-let r =  "\\" + name + "\\limits_{" + snip.tabstop(order++, one) + two
-let three = m[1] == "lim" || upper ? snip.tabstop(order++, myget(limDict, m[1] + "3")) : "";
-let four = upper ? "^{" + snip.tabstop(order++, "\\infty") + "}" : "";
-	r += three + "}" + four
-rv = r;
-``$0
+const upper = m[1] === capitaliseWord(m[1]),
+	name = getReplacement(limitSymbolsArray, m[1].toLowerCase()),
+	one = getReplacement(limitSymbolsArray, m[1] + "1"), 
+	two = getReplacement(limitSymbolsArray, m[1] + "2");
+let	order = 1,
+	r =  `\\${name}\\limits_{${snip.tabstop(order++, one)}${two}`,
+	three = m[1] == "lim" || upper ? snip.tabstop(order++, getReplacement(limitSymbolsArray, m[1] + "3")) : "",
+	four = upper ? `^{${snip.tabstop(order++, "\\infty")}}` : "";
+	r += `${three}}${four} `;
+	rv = r;
+``
 endsnippet
 
+priority 1
 context math(context)
-snippet `(//|__|\^\\\^|(bin)|(choose))` "Two Argument Expansions" A
-\``rv = myget(argDict, m[1])``{$1}{$2}$0
+snippet `(//|__|\^\\\^|bin|choose|color|colour)` "Two Argument Expansions" A
+\``rv = getReplacement(argumentFunctionArray, m[1])``{$1}{$2}
 endsnippet
 
 context math(context)
 snippet `(eval)` "Three Argument Expansions" A
-\``rv = myget(argDict, m[1])``{$1}{$2}{$3}$0
+\``rv = getReplacement(argumentFunctionArray, m[1])``{$1}{$2}{$3}
 endsnippet
 
 context math(context)
 snippet `(?<![\\a-zA-Z])op([rnl])` "Create an Operator" A
 ``
-let order = 1;
-let r = "\\mathop{\\mathrm{" + snip.tabstop(order++) + "}}";
-let lim = m[1] == "n" ? "\\nolimits" + snip.tabstop(order++) : m[1] == "l" ? snip.tabstop(order++) : "";
-	r += lim + "(" + snip.tabstop(order) + ")";
-rv = r;
-``$0
+let order = 1,
+	r = `\\mathop{\\mathrm{${snip.tabstop(order++)}}}`,
+	lim = m[1] == "n" ? "\\nolimits" + snip.tabstop(order++) : m[1] == "l" ? snip.tabstop(order++) : "";
+	r += `${lim} ${snip.tabstop(order)}`;
+	rv = r;
+``
 endsnippet
 
 context math(context)
 snippet `((\d+)|(\d*)(\\)?([A-Za-z]+)((\^|_)(\{\d+\}|\d))*)/` "Fraction, no ()" A
-\frac{``rv = m[1]``}{$1}$0
-endsnippet
-
-snippet `^.*\)/` "Fraction, with ()" A
-``
-let str = m[0].slice(0, -1);
-let depth = 0;
-let i = str.length - 1;
-while (true) {
-	if (str[i] == ')') depth += 1;
-	if (str[i] == '(') depth -= 1;
-	if (depth == 0) break;
-	i -= 1;
-}
-let r = str.slice(0, i) + "\\frac{" + str.slice(i + 1, -1) + "}";
-rv = r;
-``{$1}$0
+\frac{``rv = m[1]``}{$1}
 endsnippet
 
 context math(context)
-snippet `array([1-9]{1})\ ([1-9]{1})` "Array environment" ibA
-\begin{array}{``
-	let len = m[2];
-	let results = "";
-	for(var i=0; i<len; i++){
-		results += "c"
+snippet `^.*\)/` "Fraction, with ()" A
+``
+const str = m[0].slice(0, -1).replaceAll("\\\}", "\\\\\}").replaceAll("\}", "\\\}").replaceAll(/(?<=\s)\\\\(?=\s)/g, "\\\\\\\\");
+let	depth = 0,
+	i = str.length - 1;
+	while (true) {
+		if (str[i] == ')') depth += 1;
+		if (str[i] == '(') depth -= 1;
+		if (depth == 0) break;
+		i -= 1;
 	}
-	rv = results;
+	rv = `${str.slice(0, i)}\\frac{${snip.tabstop(1, str.slice(i + 1, -1))}}`;
+``{$2}
+endsnippet
+
+context math(context)
+snippet `array([1-9]) ([1-9])` "Array environment" A
+\begin{array}{``
+	const len = m[3];
+	let	order = 1,
+		format = "";
+		for(let i = 0; i < len; i++)
+			format += "c";
+		rv = snip.tabstop(order++, format);
 	``}
 	``
-	let order = 1;
-	let nrow = m[1];
-	let ncol = m[2];
-	for (var i=0; i<nrow-1; i++){
-		for(var j = 0;j <ncol-1;j++){
-			rv += `${snip.tabstop(order)} & `;
-			order ++;
+	const nrow = m[1],
+		ncol = m[2];
+	let	r = "";
+		for (let i = 0; i < nrow - 1; i++) {
+			for(let j = 0; j < ncol - 1; j++)
+				r += `${snip.tabstop(order++)} & `;
+			r += ` ${snip.tabstop(order++)} \\\\\\\n	`;
 		}
-		rv += ` ${snip.tabstop(order)} \\\\`+ `\\`+ `\n` + `	`;
-		order ++;
-	}
-	for(var j = 0;j <ncol-1;j++){
-		rv += `${snip.tabstop(order)} & `;
-		order ++;
-	}
-	rv += ` ${snip.tabstop(order)} \\\\`+ `\\`;
+		for(let j = 0; j < ncol - 1; j++)
+			r += `${snip.tabstop(order++)} & `;
+		r += ` ${snip.tabstop(order)} \\\\\\`;
+		rv = r;
 	``
 \end{array}
 endsnippet
 
 context math(context)
-snippet `(b|p)mat([1-9]{1})\ ([1-9]{1})` "matrix" iwA
-\begin{``rv = m[1]``matrix}``
-	let order = 1;
-	let nrow = m[2];
-	let ncol = m[3];
-	rv = `\n`;
-	for (var i=0; i<nrow; i++){
-		rv += '	';
-		for(var j = 0;j <ncol-1;j++){
-			rv += `${snip.tabstop(order)} & `;
-			order ++;
+snippet `([bp])mat([1-9]) ([1-9])` "Matrices" A
+\begin{``rv = m[1]``matrix}[``
+	const len = m[3];
+	let	order = 1,
+		format = "";
+		for(let i = 0; i < len; i++)
+			format += "c";
+		rv = snip.tabstop(order++, format);
+	``]
+	``
+	const nrow = m[2],
+		ncol = m[3];
+	let	r = "";
+		for (let i = 0; i < nrow - 1; i++) {
+			for(let j = 0; j < ncol - 1; j++)
+				r += `${snip.tabstop(order++)} & `;
+			r += `${snip.tabstop(order++)} \\\\\\\n	`;
 		}
-		rv += ` ${snip.tabstop(order)} \\\\`+ `\\`+ `\n`;
-		order ++;
-	}
-	``\end{``rv = m[1]``matrix}$0
+		for (let j = 0; j < ncol - 1; j++)
+			r += `${snip.tabstop(order++)} & `;
+		r += `${snip.tabstop(order++)} \\\\\\`;
+		rv = r;
+	``
+\end{``rv = m[1]``matrix}
 endsnippet
 
-snippet `table(m)?([1-9]{1})\ ([1-9]{1})` "Tables" A
+snippet `(m)?table([1-9]{1})\ ([1-9]{1})` "Tables" A
 \begin{table}[H]
 	\centering
 	\begin{tabular}{``
-	let len = m[3];
-	let math = m[1] == "m";
-	let results = "c";
-	for(var i=0; i<len-2; i++){
-		results += "c"
-	}
-	results += "c";
-	rv = results;
+	const len = m[3],
+		math = m[1];
+	let	format = "c";
+		for(let i = 0; i < len - 1; i++)
+			format += "c"
+		rv = snip.tabstop(3, format);
 	``}
 	    \toprule
-			``
-			let order = 1;
-			nrow = m[2];
+		``
+		const nrow = m[2],
 			ncol = m[3];
-			for (var i=0; i<nrow-1; i++){
-				for(var j = 0;j <ncol-1;j++){
-					rv += (math ? `\\( ` : "") + `${snip.tabstop(order+2)} ` + (math ? `\\) ` : "") + `& `;
-					order ++;
-				}	
-				rv += (math ? ` \\(` : "")  + ` ${snip.tabstop(order+2)}` + (math ? ` \\)` : "") + ` \\\\`+ `\\`+ `\n`;
-				order ++;
-				if(i == 0){
-					rv += `		\\midrule` + `\n`;
-				}
-				rv += `			`;
+		let order = 4,
+			r = "";
+			for (let i = 0; i < nrow - 1; i++) {
+				for(let j = 0; j < ncol - 1; j++) 
+					r += (math ? "\\( " : "") + snip.tabstop(order++) + (math ? " \\)" : "") + " & ";
+				r += (math ? " \\( " : "") + snip.tabstop(order++) + (math ? " \\)" : "") + " \\\\\\\n	";
+				if (!i) r += "	\\midrule\n	";
+				r += `	`;
 			}	
-			for(var j = 0;j <ncol-1;j++){
-				rv += (math ? `\\( ` : "") + `${snip.tabstop(order+2)} ` + (math ? `\\) ` : "") + `& `;
-				order ++;
-			}
-			rv += (math ? ` \\(` : "") + ` ${snip.tabstop(order+2)}` + (math ? ` \\)` : "") + ` \\\\` + `\\`;
-			``
+			for(let j = 0; j < ncol - 1; j++)
+				r += (math ? "\\( " : "") + snip.tabstop(order++) + (math ? " \\)" : "") + " & ";
+			r += (math ? "\\( " : "") + snip.tabstop(order++) + (math ? " \\)" : "") + " \\\\\\";
+			rv = r;
+		``
     	\bottomrule
 	\end{tabular}
 	\caption{${2:caption}}
 	\label{Table \thetable}
-\end{table}$0
+\end{table}
 endsnippet
+
