@@ -1,0 +1,601 @@
+\usepackage[utf8]{inputenc} % input encoding
+\usepackage[OT1, OT2, T1]{fontenc} % font encoding
+\usepackage{amsmath, amsfonts, amssymb, amsthm, latexsym, mathrsfs, mathtools, stmaryrd} % basic math fonts, symbols, and commands
+\usepackage{array} % expanded functionality of matrix and tabular environments
+\usepackage[UKenglish]{babel} % automatically fixes some character things
+\usepackage{bm} % bold math font
+\usepackage{booktabs} % nicer tables
+\usepackage{cancel} % cancelling out variables
+\usepackage[autostyle, english=british]{csquotes} % use literal quotes as quotes
+\usepackage{emptypage} % makes a truly empty page (this is, no headers or footers)
+\usepackage[shortlabels]{enumitem} % more options for enumerate
+\usepackage{etoolbox} % tools for creating commands
+\usepackage{fancyhdr} % fancy headers
+\usepackage{float} % positioning of floating objects
+\usepackage{listings} % code blocks
+\usepackage{lstautogobble} % code blocks options
+\usepackage{marginnote} % for when marginpar doesn't work
+\usepackage{multicol} % allows for multiple columns within a single table column
+\usepackage{multirow} % allows for multiple rows within a single table row
+\usepackage{parskip} % no indents
+\usepackage{pgfplotstable} % figure, color, graphicx support including tikz
+\usepackage{polynom} % tools for manipulating polynomials
+\usepackage{siunitx} % SI units
+\usepackage{subcaption} % allows captions
+\usepackage{systeme} % creating systems of equations
+\usepackage{gensymb, textcomp} % generic text symbols
+\usepackage{thmtools} % tools for making theorems
+\usepackage{tikz-cd} % draw commutative diagrams
+\usepackage{titlesec} % tools for changing titles of sections
+\usepackage{tocloft} % allows me to create a new table of contents
+\usepackage[normalem]{ulem} % allows for strike-through text
+\usepackage[dvipsnames]{xcolor} % colours and coloured text
+\usepackage{xifthen} % extended if then else commands
+\usepackage{xstring} % tools for manipulating strings 
+\usepackage[all]{xy} % tools for drawing basic diagrams
+\usepackage[framemethod=TikZ]{mdframed}
+\usepackage{bookmark} % hyperref but with fixes 
+\usepackage{url} % allows for external urls
+\usepackage[hmargin=1.4in,vmargin=1.4in,marginparwidth=0.75in]{geometry} % margins
+\usepackage{href-ul} % underline hyperlinks
+
+% =================================================================================================
+
+% custom colours
+\definecolor{grey}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+\definecolor{checkmarkgreen}{HTML}{009900}
+\definecolor{hanpurple}{rgb}{0.32, 0.09, 0.98}
+\definecolor{atomictangerine}{rgb}{1.0, 0.6, 0.4}
+\definecolor{lightgrey}{gray}{0.92}
+\definecolor{stackgrey}{gray}{0.95}
+
+% =================================================================================================
+
+% forces PDF version
+\pdfminorversion=7
+\pdfsuppresswarningpagegroup=1
+
+% =================================================================================================
+
+% margins and text dimensions
+\setlength{\textheight}{9in}
+\setlength{\textwidth}{6.5in}
+\setlength{\topmargin}{0.0in}
+\setlength{\leftmargin}{0.0in}
+\setlength{\oddsidemargin}{0.0in}
+\reversemarginpar
+
+% =================================================================================================
+
+% titles, sections, and toc stuff
+\newlistof{lectures}{lec}{Lectures} % define the lecture section of the ToC 
+
+\setcounter{tocdepth}{3}
+\setcounter{secnumdepth}{1}
+
+% =================================================================================================
+
+% makes things appear underneath certain operators by default by appending \limits to them
+\apptocmd{\lim}{\limits}{}{}
+\apptocmd{\sum}{\limits}{}{}
+\apptocmd{\prod}{\limits}{}{}
+\apptocmd{\bigwedge}{\limits}{}{}
+\apptocmd{\bigvee}{\limits}{}{}
+\apptocmd{\bigcap}{\limits}{}{}
+\apptocmd{\bigcup}{\limits}{}{}
+\apptocmd{\bigoplus}{\limits}{}{}
+\apptocmd{\bigotimes}{\limits}{}{}
+\apptocmd{\max}{\limits}{}{}
+\apptocmd{\min}{\limits}{}{}
+\apptocmd{\sup}{\limits}{}{}
+\apptocmd{\inf}{\limits}{}{}
+
+% =================================================================================================
+
+% changing the looks of some variables to better looking versions
+\let\epsilon\varepsilon
+\let\iff\Leftrightarrow
+\let\implies\Rightarrow
+\let\impliedby\Leftarrow
+
+% =================================================================================================
+
+% set some figure settings
+\pgfplotsset{compat=newest}
+\usepgfplotslibrary{fillbetween}
+\usetikzlibrary{patterns}
+\usetikzlibrary{intersections}
+
+% =================================================================================================
+
+% make the @ symbol a usable letter for the next bit
+\makeatletter
+
+% indent subsections in the ToC
+\renewcommand*\l@subsection{\@dottedtocline{2}{5.5em}{4.5em}}
+
+% =================================================================================================
+
+% package settings
+
+\lstset{
+    autogobble,
+    basewidth=0.5em,
+    basicstyle={\small\ttfamily},
+    belowskip=1mm,
+    breakatwhitespace=true,
+    breaklines=true,
+    captionpos=b,
+    escapeinside={(*}{*)},
+    frame=t,
+    framexleftmargin=2mm,
+    keepspaces=true,
+    numbers=left,
+    numbersep=3mm,
+    numberstyle=\scriptsize\color{grey},
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2,
+    upquote=true,
+    xleftmargin=4mm,
+}
+
+\@ifclasswith{report}{nocolor}
+{
+    \hypersetup{
+        colorlinks,
+        linkcolor={black!50!black},
+        citecolor={black!50!black},
+        urlcolor={black!80!black}
+    }
+}
+{
+    \hypersetup{
+        colorlinks,
+        linkcolor={red!50!black},
+        citecolor={blue!50!black},
+        urlcolor={blue!80!black}
+    }
+    \lstset{
+        backgroundcolor=\color{stackgrey},
+        commentstyle=\color{checkmarkgreen},
+        keywordstyle=\color{blue},
+        stringstyle=\color{mauve},
+    }
+}
+
+% =================================================================================================
+
+% custom commands
+\@ifclasswith{report}{nocolor}
+{
+    % incorrect text
+    \newcommand{\red}[1]{{\sout{#1}}}
+    % correct text
+    \newcommand{\green}[1]{#1}
+}
+{
+    % incorrect text
+    \newcommand{\red[1]}{{\color{red}{#1}}}
+    % correct text
+    \newcommand{\green[1]}{{\color{checkmarkgreen}{#1}}}
+}
+
+% big cdot
+\newcommand*{\bigcdot}{}% Check if undefined
+\DeclareRobustCommand*{\bigcdot}{%
+    \mathbin{\mathpalette\bigcdot@{}}%
+}
+\newcommand*{\bigcdot@scalefactor}{.5}
+\newcommand*{\bigcdot@widthfactor}{1.15}
+\newcommand*{\bigcdot@}[2]{%
+    % #1: math style
+    % #2: unused
+    \sbox0{$#1\vcenter{}$}% math axis
+    \sbox2{$#1\cdot\m@th$}%
+    \hbox to \bigcdot@widthfactor\wd2{%
+        \hfil
+        \raise\ht0\hbox{%
+            \scalebox{\bigcdot@scalefactor}{%
+                \lower\ht0\hbox{$#1\bullet\m@th$}%
+            }%
+        }%
+        \hfil
+    }%
+}
+
+% red -> green, for marking purposes
+\newcommand{\correction}[2]{\ensuremath{\:}{\red{#1}}\ \ensuremath{\to }\ {\green{#2}}\ensuremath{\:}}
+
+% horizontal rule
+\newcommand{\hr}{\par \noindent\rule[0.5ex]{\linewidth}{0.5pt} \par}
+
+% =================================================================================================
+
+% basic margin setup
+\mdfsetup{skipabove=12pt, skipbelow=0em, innertopmargin=5pt, innerbottommargin=6pt}
+
+% basic style setup
+\theoremstyle{definition}
+
+% custom environments
+\@ifclasswith{report}{nocolor}
+{
+    \declaretheoremstyle[
+        headfont=\bfseries\sffamily, bodyfont=\normalfont,
+        mdframed={
+                nobreak
+            }
+    ]{purplebox}
+    \declaretheoremstyle[
+        headfont=\bfseries\sffamily, bodyfont=\normalfont,
+        mdframed={
+                rightline=false, topline=false, bottomline=false,
+            }
+    ]{purpleline}
+    \declaretheoremstyle[
+        headfont=\bfseries\sffamily, bodyfont=\normalfont,
+        mdframed={
+                rightline=false, topline=false, bottomline=false,
+            }
+    ]{orangebox}
+    \declaretheoremstyle[
+        headfont=\bfseries\sffamily, bodyfont=\normalfont,
+        mdframed={
+                rightline=false, topline=false, bottomline=false,
+            }
+    ]{orangeline}
+    \declaretheoremstyle[
+        headfont=\bfseries\sffamily, bodyfont=\normalfont,
+        mdframed={
+                nobreak
+            }
+    ]{greenbox}
+    \declaretheoremstyle[
+        headfont=\bfseries\sffamily, bodyfont=\normalfont,
+        mdframed={
+                rightline=false, topline=false, bottomline=false,
+            }
+    ]{lightgreenbox}
+    \declaretheoremstyle[
+        headfont=\bfseries\sffamily, bodyfont=\normalfont,
+        mdframed={
+                nobreak
+            }
+    ]{greenline}
+    \declaretheoremstyle[
+        headfont=\bfseries\sffamily, bodyfont=\normalfont,
+        mdframed={
+                nobreak
+            }
+    ]{bluebox}
+    \declaretheoremstyle[
+        headfont=\bfseries\sffamily, bodyfont=\normalfont,
+        mdframed={
+                rightline=false, topline=false, bottomline=false,
+            }
+    ]{blueline}
+    \declaretheoremstyle[
+        headfont=\bfseries\sffamily, bodyfont=\normalfont,
+        mdframed={
+                nobreak
+            }
+    ]{redbox}
+    \declaretheoremstyle[
+        headfont=\bfseries\sffamily, bodyfont=\normalfont,
+        numbered=no,
+        mdframed={
+                rightline=false, topline=false, bottomline=false,
+            },
+        qed=\qedsymbol
+    ]{proofbox}
+    \declaretheoremstyle[
+        headfont=\bfseries\sffamily, bodyfont=\normalfont,
+        numbered=no,
+        headpunct=,
+        postheadspace=0px,
+        mdframed={
+                rightline=false, topline=false, bottomline=false,
+            },
+        qed=\qedsymbol
+    ]{proofboxn}
+    \declaretheoremstyle[
+        headfont=\bfseries\sffamily, bodyfont=\normalfont,
+        numbered=no,
+        mdframed={
+                rightline=false, topline=false, bottomline=false,
+            },
+    ]{explanationbox}
+}
+{
+    \declaretheoremstyle[
+        headfont=\bfseries\sffamily\color{hanpurple!70!black}, bodyfont=\normalfont,
+        mdframed={
+                linewidth=2pt,
+                rightline=false, topline=false, bottomline=false,
+                linecolor=hanpurple, backgroundcolor=hanpurple!10,
+            }
+    ]{purplebox}
+    \declaretheoremstyle[
+        headfont=\bfseries\sffamily\color{hanpurple!70!black}, bodyfont=\normalfont,
+        mdframed={
+                linewidth=2pt,
+                rightline=false, topline=false, bottomline=false,
+                linecolor=hanpurple
+            }
+    ]{purpleline}
+    \declaretheoremstyle[
+        headfont=\bfseries\sffamily\color{atomictangerine!70!black}, bodyfont=\normalfont,
+        mdframed={
+                linewidth=2pt,
+                rightline=false, topline=false, bottomline=false,
+                linecolor=atomictangerine, backgroundcolor=atomictangerine!10,
+            }
+    ]{orangebox}
+    \declaretheoremstyle[
+        headfont=\bfseries\sffamily\color{atomictangerine!70!black}, bodyfont=\normalfont,
+        mdframed={
+                linewidth=2pt,
+                rightline=false, topline=false, bottomline=false,
+                linecolor=atomictangerine
+            }
+    ]{orangeline}
+    \declaretheoremstyle[
+        headfont=\bfseries\sffamily\color{ForestGreen!70!black}, bodyfont=\normalfont,
+        mdframed={
+                linewidth=2pt,
+                rightline=false, topline=false, bottomline=false,
+                linecolor=ForestGreen, backgroundcolor=ForestGreen!10,
+            }
+    ]{greenbox}
+    \declaretheoremstyle[
+        headfont=\bfseries\sffamily\color{ForestGreen!70!black}, bodyfont=\normalfont,
+        mdframed={
+                linewidth=2pt,
+                rightline=false, topline=false, bottomline=false,
+                linecolor=ForestGreen, backgroundcolor=ForestGreen!5,
+            }
+    ]{lightgreenbox}
+    \declaretheoremstyle[
+        headfont=\bfseries\sffamily\color{ForestGreen!70!black}, bodyfont=\normalfont,
+        mdframed={
+                linewidth=2pt,
+                rightline=false, topline=false, bottomline=false,
+                linecolor=ForestGreen
+            }
+    ]{greenline}
+    \declaretheoremstyle[
+        headfont=\bfseries\sffamily\color{NavyBlue!70!black}, bodyfont=\normalfont,
+        mdframed={
+                linewidth=2pt,
+                rightline=false, topline=false, bottomline=false,
+                linecolor=NavyBlue, backgroundcolor=NavyBlue!10,
+            }
+    ]{bluebox}
+    \declaretheoremstyle[
+        headfont=\bfseries\sffamily\color{NavyBlue!70!black}, bodyfont=\normalfont,
+        mdframed={
+                linewidth=2pt,
+                rightline=false, topline=false, bottomline=false,
+                linecolor=NavyBlue
+            }
+    ]{blueline}
+    \declaretheoremstyle[
+        headfont=\bfseries\sffamily\color{RawSienna!70!black}, bodyfont=\normalfont,
+        mdframed={
+                linewidth=2pt,
+                rightline=false, topline=false, bottomline=false,
+                linecolor=RawSienna, backgroundcolor=RawSienna!10,
+            }
+    ]{redbox}
+    \declaretheoremstyle[
+        headfont=\bfseries\sffamily\color{RawSienna!70!black}, bodyfont=\normalfont,
+        numbered=no,
+        mdframed={
+                linewidth=2pt,
+                rightline=false, topline=false, bottomline=false,
+                linecolor=RawSienna, backgroundcolor=RawSienna!5,
+            },
+        qed=\qedsymbol
+    ]{proofbox}
+    \declaretheoremstyle[
+        headfont=\bfseries\sffamily\color{RawSienna!70!black}, bodyfont=\normalfont,
+        numbered=no,
+        headpunct=,
+        postheadspace=0px,
+        mdframed={
+                linewidth=2pt,
+                rightline=false, topline=false, bottomline=false,
+                linecolor=RawSienna, backgroundcolor=RawSienna!5,
+            },
+        qed=\qedsymbol
+    ]{proofboxn}
+    \declaretheoremstyle[
+        headfont=\bfseries\sffamily\color{NavyBlue!70!black}, bodyfont=\normalfont,
+        numbered=no,
+        mdframed={
+                linewidth=2pt,
+                rightline=false, topline=false, bottomline=false,
+                linecolor=NavyBlue, backgroundcolor=NavyBlue!5,
+            },
+    ]{explanationbox}
+}
+
+\declaretheorem[numbered=no, style=blueline, name=Note]{note} % note
+\declaretheorem[numbered=no, style=blueline, name=Remark]{remark} % remark
+\declaretheorem[numbered=no, style=blueline, name=Idea]{idea} % idea
+\declaretheorem[numbered=no, style=greenbox, name=Problem]{problem} % problem
+\declaretheorem[numbered=no, style=greenbox, name=Question]{question} % problem
+\declaretheorem[numbered=no, style=greenbox, name=Recall]{recall} % recall
+\declaretheorem[numbered=no, style=orangebox, name=Notice]{notice} % notice
+\declaretheorem[numbered=no, style=orangebox, name=Observation]{observation} % observation
+\declaretheorem[numbered=no, style=orangebox, name=Investigation]{investigation} % investigation
+\declaretheorem[numbered=no, style=orangebox, name=Goal]{goal} % goal
+\declaretheorem[numbered=no, style=orangebox, name=Summary]{summary} % summary
+\declaretheorem[numbered=no, style=orangeline, name=Conjecture]{conjecture} % conjecture
+\declaretheorem[numbered=no, style=orangeline, name=Intuition]{iintuition} % intuition
+\newenvironment{intuition}{\vspace{-10pt}\begin{iintuition}}{\end{iintuition}}
+\declaretheorem[numbered=no, style=purpleline, name=Notation]{notation} % notation
+\declaretheorem[numbered=no, style=purpleline, name=Convention]{convention} % convention
+
+\declaretheorem[numberwithin=chapter, style=bluebox, name=Example]{example} % example
+\declaretheorem[numberwithin=chapter, style=bluebox, name=Exercise]{exercise} % exercise
+\declaretheorem[numberwithin=chapter, style=orangebox, name=Property]{property} % property
+\declaretheorem[numberwithin=chapter, style=purplebox, name=Definition]{definition} % definition
+\declaretheorem[numberwithin=chapter, style=purplebox, name=Algorithm]{algorithm} % algorithm
+\declaretheorem[numberwithin=chapter, style=redbox, name=Claim]{claim} % claim
+\declaretheorem[numberwithin=chapter, style=redbox, name=Corollary]{corollary} % corollary
+\declaretheorem[numberwithin=chapter, style=redbox, name=Lemma]{lemma} % lemma
+\declaretheorem[numberwithin=chapter, style=redbox, name=Proposition]{proposition} % proposition
+\declaretheorem[numberwithin=chapter, style=redbox, name=Theorem]{theorem} % theorem
+
+\newcounter{proof} % creates a variable that counts the number of proof environments
+\counterwithin{proof}{chapter}
+\declaretheorem[style=proofbox, name=Proof]{replacementproof} % proof (to be used with theorem, lemma, proposition, or corollary)
+\declaretheorem[style=proofboxn, name=]{replacementproofn} % proof (to be used with theorem, lemma, proposition, or corollary)
+\renewenvironment{proof}[1][\proofname]{\def\proofarg{#1}\ifthenelse{\equal{\proofarg}{\proofname}}{\vspace{-12.5pt}\begin{replacementproofn}}{\begin{replacementproof}(\proofarg)}}{\ifthenelse{\equal{\proofarg}{\proofname}}{\end{replacementproofn}}{\end{replacementproof}}\refstepcounter{proof}}
+
+\declaretheorem[numbered=no, style=lightgreenbox, name=Solution]{spacedsolution}
+\newenvironment{solution}{\vspace{-12.5pt}\begin{spacedsolution}}{\end{spacedsolution}}
+
+\declaretheorem[style=explanationbox, name=Explanation]{spacedexplanation}
+\newenvironment{explanation}{\vspace{-12.5pt}\begin{spacedexplanation}}{\end{spacedexplanation}}
+
+\declaretheorem[numbered=no, style=lightgreenbox, name=Answer]{spacedanswer}
+\newenvironment{answer}{\vspace{-12.5pt}\begin{spacedanswer}}{\end{spacedanswer}}
+
+% =================================================================================================
+
+% fixes spacing
+\def\thm@space@setup{\thm@preskip=\parskip \thm@postskip=0pt}
+\renewcommand{\cftbeforetoctitleskip}{0pt}
+\renewcommand{\cftaftertoctitleskip}{0.4\baselineskip}
+\renewcommand{\cftbeforelectitleskip}{0.8em}
+\renewcommand{\cftafterlectitleskip}{0.5\baselineskip}
+\renewcommand{\cftlectitlefont}{\LARGE\bfseries}
+\renewcommand{\cfttoctitlefont}{\LARGE\bfseries}
+
+% =================================================================================================
+
+% headers
+\pagestyle{fancy}
+\fancyhead[LO, RE]{Ray Hang}
+\fancyhead[LE, RO]{\@currentlabelname}
+\fancyfoot[LE, RO]{\thepage}
+\fancyfoot[C]{\leftmark}
+
+% =================================================================================================
+
+\newcommand{\makelecturetoc}{% make 3-column lecture table of contents
+    \vspace{-\cftbeforelectitleskip}
+    \section*{\cfttoctitlefont Lectures
+      \@mkboth{\cfttoctitlefont Lectures}{\cfttoctitlefont Lectures}} \vspace{-\cftafterlectitleskip}
+    \begin{multicols}{3}
+        \@starttoc{lec}%
+    \end{multicols}
+    \onecolumn
+}
+
+% custom command to create a lecture section
+\newcounter{lecturenum}
+\newcommand{\lecture}[2]{
+    \ifthenelse{\isempty{#2}}
+    {\lecturemargin{#1}{1.15em}}
+    {\section{#2}\lecturemargin{#1}{-1.75em}}
+}
+
+% this should work whenever \lecture does not
+\newcommand{\nlecture}[2]{
+    \ifthenelse{\isempty{#2}}
+    {\lecturenmargin{#1}{1.15em}}
+    {\section{#2}\lecturenmargin{#1}{-1.75em}}
+}
+
+\newcommand{\lecturemargin}[2]{
+    \marginpar[\vspace{#2}\small\itshape#1]{}
+    \refstepcounter{lecturenum}
+    \addcontentsline{lec}{lectures}{\thelecturenum : #1}
+}
+
+\newcommand{\lecturenmargin}[2]{
+    \marginnote[\vspace{#2}\small\itshape#1]{}
+    \refstepcounter{lecturenum}
+    \addcontentsline{lec}{lectures}{\thelecturenum : #1}
+}
+
+% custom command to create a tutorial section
+\def\@tutorial{}
+\newcommand{\tutorial}[2]{
+    \ifthenelse{\isempty{#2}}
+    {\def\@tutorial{Tutorial #1}}
+    {\def\@tutorial{Tutorial #1: #2}}
+    \section{\@tutorial}
+}
+
+% custom command to create a double hat
+\newcommand{\hhat}[1]{% 
+    \begingroup%
+    \let\macc@kerna\z@%
+    \let\macc@kernb\z@%
+    \let\macc@nucleus\@empty%
+    \hat{\mathchoice%
+        {\raisebox{.35ex}{\vphantom{\ensuremath{\displaystyle #1}}}}%
+        {\raisebox{.35ex}{\vphantom{\ensuremath{\textstyle #1}}}}%
+        {\raisebox{.16ex}{\vphantom{\ensuremath{\scriptstyle #1}}}}%
+        {\raisebox{.14ex}{\vphantom{\ensuremath{\scriptscriptstyle #1}}}}%
+        \smash{\hat{#1}}}%
+    \endgroup%
+}
+
+% allows for formatting matrix environments
+\renewcommand*\env@matrix[1][*\c@MaxMatrixCols c]{%
+    \hskip -\arraycolsep
+    \let\@ifnextchar\new@ifnextchar
+    \array{#1}}
+
+\makeatother % resets the @ symbol
+
+% aliases
+\renewcommand{\arcsin}{\sin^{-1}}
+\renewcommand{\arccos}{\cos^{-1}}
+\renewcommand{\arctan}{\tan^{-1}}
+\newcommand{\arcsec}{\sec^{-1}}
+\newcommand{\arccsc}{\csc^{-1}}
+\newcommand{\arccot}{\cot^{-1}}
+\newcommand{\union}{\cup}
+\newcommand{\intersect}{\cap}
+\newcommand{\cross}{\times}
+
+% figure support (https://castel.dev/post/lecture-notes-2)
+% \usepackage{import}
+% \usepackage{pdfpages}
+% \usepackage{transparent}
+% \newcommand{\incfig}[1]{%
+%     \def\svgwidth{\columnwidth}
+%     \import{./figures/}{#1.pdf_tex}
+% }
+
+% starts chapter counter at specified number
+\newcommand{\nchapter}[2]{
+    \setcounter{chapter}{#1}
+    \addtocounter{chapter}{-1}
+    \chapter{#2}
+}
+
+% starts section counter at specified number
+\newcommand{\nsection}[3]{
+    \setcounter{chapter}{#1}
+    \setcounter{section}{#2}
+    \addtocounter{section}{-1}
+    \section{#3}
+}
+
+\newcommand{\code}{\lstinline} % inline codeblock
+\newcommand{\forcepar}{\hspace{-10px}~\par} % forces a line
+\newcommand*{\eval}[3]{\left.#1\right\rvert_{#2}^{#3}} % evaluation bar for integrals and differentials
+\newcommand{\overbar}[1]{\mkern 1.5mu\overline{\mkern-1.5mu#1\mkern-1.5mu}\mkern 1.5mu} % boolean logic overline
+
+% default author
+\author{Ray Hang}
