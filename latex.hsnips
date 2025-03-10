@@ -9,19 +9,16 @@ function math(context) {
 		mathFunctionLastIndex = -1,
 		normalFunctionlastIndex = -1;
 
-	for (; i > -1; i--) {
+	for (; i > 0; i--) {
 		if (mathFunctionLastIndex < 0 && context.scopes[i].startsWith("meta.math"))
-			mathFunctionLastIndex = i;	
+			mathFunctionLastIndex = i;
 
-		if (normalFunctionlastIndex < 0 && (context.scopes[i].startsWith("comment") || context.scopes[i].startsWith("meta.text.normal.tex")))
-			normalFunctionlastIndex = i;	
+		else if (normalFunctionlastIndex < 0 && (context.scopes[i].startsWith("comment") || context.scopes[i].startsWith("meta.text.normal.tex")))
+			normalFunctionlastIndex = i;
 
 		if (mathFunctionLastIndex > -1 && normalFunctionlastIndex > -1)
 			break;
 	}
-
-	//  const mathFunctionLastIndex = context.scopes.findLastIndex(s => s.startsWith("meta.math")),
-	// 	normalFunctionlastIndex = context.scopes.findLastIndex(s => s.startsWith("comment") || s.startsWith("meta.text.normal.tex"));
 
 	mathFlag = mathFunctionLastIndex > normalFunctionlastIndex;
 
@@ -43,27 +40,20 @@ function dollarSign(context) {
 		metaFunctionLastIndex = -1;
 	const metaFunctionFirstIndex = context.scopes.findIndex(s => s.startsWith("meta.function"));
 
-	for (; i > -1; i--) {
+	for (; i > 0; i--) {
 		if (context.scopes[i].startsWith("meta.math")) {
 			numMathFunctions++;
 			if (mathFunctionLastIndex < 0)
 				mathFunctionLastIndex = i;
 		}
-		if (metaFunctionLastIndex < 0 && context.scopes[i].startsWith("meta.function"))
+		else if (metaFunctionLastIndex < 0 && context.scopes[i].startsWith("meta.function"))
 			metaFunctionLastIndex = i;
 	}
-
-	//	let numMathFunctions = 0;
-	//	context.scopes.forEach(v => v.startsWith("meta.math") && numMathFunctions++);
-
-	//	const mathFunctionLastIndex = context.scopes.findLastIndex(s => s.startsWith("meta.math")),
-	//		metaFunctionLastIndex = context.scopes.findLastIndex(s => s.startsWith("meta.function")),
-	//		metaFunctionFirstIndex = context.scopes.findIndex(s => s.startsWith("meta.function"));
 
 	dollarSignFlag = numMathFunctions < 2 && (mathFunctionLastIndex < 4 || (metaFunctionLastIndex > 2 && mathFunctionLastIndex - metaFunctionFirstIndex > 1));
 	mathFlag = true;
 
-	return dollarSignFlag; 
+	return dollarSignFlag;
 }
 
 function capitalise(word) {
@@ -115,7 +105,7 @@ const phrases = new Map([
 
 const textTypes = new Map([
 	["^_", "overline"],
-	["^-", "overbar"],
+	["^\\-", "overbar"],
 	["^.", "dot"],
 	["^^", "hat"],
 	["^>", "vec"],
@@ -124,9 +114,11 @@ const textTypes = new Map([
 	["^3.", "dddot"],
 	["^4.", "ddddot"],
 	["bold", "textbf"],
+	["boldb", "bm"],
 	["code", "code"],
 	["emphasis", "emph"],
 	["italic", "textit"],
+	["italicb", "mathit"],
 	["mbb", "mathbb"],
 	["mbf", "mathbf"],
 	["mbm", "bm"],
@@ -215,7 +207,6 @@ const dynamicLimiters = new Map([
 	["norml", "\\lVert"],
 	["Normr", "\\right\\rVert"],
 	["normr", "\\rVert"],
-
 	]
 );
 
@@ -238,7 +229,6 @@ const environments = [
 		"mexplanation",
 		"mlemma",
 		"mproof",
-		"mproperty",
 		"mproposition",
 		"mtheorem",
 		"ncorollary",
@@ -252,7 +242,6 @@ const environments = [
 		"note",
 		"notice",
 		"nproof",
-		"nproperty",
 		"nproposition",
 		"ntheorem",
 		"observation",
@@ -288,7 +277,6 @@ const environments = [
 		["nexplanation", "explanation"],
 		["nlemma", "lemma"],
 		["nproof", "proof"],
-		["nproperty", "property"],
 		["nproposition", "proposition"],
 		["ntheorem", "theorem"],
 		["mcorollary", "corollary"],
@@ -299,31 +287,34 @@ const environments = [
 		["mexplanation", "explanation"],
 		["mlemma", "lemma"],
 		["mproof", "proof"],
-		["mproperty", "property"],
 		["mproposition", "proposition"],
 		["mtheorem", "theorem"],
 	]) // 2: translations of settings. 
 ];
 
 const limprods = new Map([
+	["bcap", "bigcap"],	
+	["bcap1", "i"],	
+	["bcap2", ""],	
+	["bcup", "bigcup"],	
+	["bcup1", "i"],	
+	["bcup2", ""],	
 	["cap", "bigcap"],
-	["cup", "bigcup"],
-	["o*", "bigotimes"],
-	["o+", "bigoplus"],
-	["vee", "bigvee"],
-	["wedge", "bigwedge"],	
 	["Cap1", "i"],
 	["Cap2", " = "],
 	["Cap3", "1"],
+	["cup", "bigcup"],
 	["Cup1", "i"],
 	["Cup2", " = "],
 	["Cup3", "1"],
 	["lim1", "n"],
 	["lim2", " \\to "],
 	["lim3", "\\infty"],
+	["o*", "bigotimes"],
 	["O*1", "i"],
 	["O*2", " = "],
 	["O*3", "1"],
+	["o+", "bigoplus"],
 	["O+1", "i"],
 	["O+2", " = "],
 	["O+3", "1"],
@@ -337,9 +328,11 @@ const limprods = new Map([
 	["Sum2", " = "],
 	["sum2", ""],
 	["Sum3", "1"],
+	["vee", "bigvee"],
 	["Vee1", "i"],
 	["Vee2", " = "],
 	["Vee3", "1"],
+	["wedge", "bigwedge"],	
 	["Wedge1", "i"],
 	["Wedge2", " = "],
 	["Wedge3", "1"],
@@ -353,7 +346,7 @@ const argumentFunctions = new Map([
 	["bin", "binom"],
 	["choose", "binom"],
 	["color", "textcolor"],
-	["colour", "textcolor"],
+	["\\color", "textcolor"],
 	["text", "text"],
 	["\\topstr", "texorpdfstring"],
 	["text", "text"],
@@ -388,7 +381,7 @@ endsnippet
 
 context mathFlag
 snippet `(\d+|\d*(?:\\)?[A-Za-z]+(?:[_^](?:\{\d+\}|\d))*)\/` "Fraction, no ()" A
-\frac{``rv = m[1]``}{$1}
+\\frac{``rv = m[1]``}{$1}
 endsnippet
 
 snippet \\ "New Line" iA
@@ -416,12 +409,12 @@ endsnippet
 # endsnippet
 
 context mathFlag
-snippet `\b(?<!\\)(?:(?:arc)?(?:cos|cot|csc|sec|sin|tan)|aleph|alpha|ast|beta|chi|[cdv]?dots?|bigcdot|circ|cross|[dD]elta|ell|emptyset|epsilon|exp|[gG]amma|gcd|inf|infty|iota|kappa|[lL]ambda|[lr]angle|left|ln|log|[mn]u|max|min|n?cong|n?exists|n?geq|n?leq|n?mid|n?parallel|n?sim(?:eq)?|n?su[bp]set(?:n?eq)?|n?v[dD]ash|nabla|neq|o?ii?i?nt|[oO]mega|[pP][hs]?i|partial|pmod|prime|qed|rho|right|[sS]igma|setminus|square|star|sup|[tT]heta|tau|times|triangle|[uU]psilon|var(?:epsilon|kappa|phi|pi|rho|sigma|theta)|varnothing|vert|[xX]i|z?eta)` "Math Characters" A
+snippet `\b(?<!(?:\\|rm{))(?:(?:arc)?(?:cos|cot|csc|sec|sin|tan)|aleph|alpha|ast|beta|chi|[cdv]?dots?|bigcdot|circ|cross|[dD]elta|ell|emptyset|epsilon|exp|[gG]amma|gcd|inf|infty|iota|kappa|[lL]ambda|[lr]angle|left|ln|log|[mn]u|max|min|n?cong|n?exists|n?geq|n?leq|n?mid|n?parallel|n?sim(?:eq)?|n?su[bp]set(?:n?eq)?|n?v[dD]ash|nabla|neq|o?ii?i?nt|[oO]mega|[pP][hs]?i|partial|pmod|prime|qed|rho|right|[sS]igma|setminus|square|star|sup|[tT]heta|tau|times|triangle|[uU]psilon|var(?:epsilon|kappa|phi|pi|rho|sigma|theta)|varnothing|vert|[xX]i|z?eta)` "Math Characters" A
 \\``rv = m[0]``
 endsnippet
 
 context mathFlag
-snippet `m(?:b[bfm]|cal|frk|rm|scr)|\^(?:[_^>~-]|[234]?\.)|text` "Math Types" A
+snippet `m(?:b[bfm]|cal|frk|rm|scr)|\^(?:[_^>~]|[234]?\.|\\-)|text` "Math Types" A
 \\``rv = getElse(textTypes, m[0])``{$1}
 endsnippet
 
@@ -442,7 +435,7 @@ let	depth = 0,
 endsnippet
 
 context mathFlag
-snippet `\b(?<!\\)(not)?((?:big)?(?:(?:sq)?cap|(?:sq)?cup|oplus|otimes|wedge|vee)|approx|because|colon(?:eqq)?|equiv|eqqcolon|iff|implie(?:s|dby)|in(?:tersect)?|forall|land|lnot|lor|mapsto|models|perp|propto|therefore|top|union)` "Math Characters (explicit not)" A
+snippet `\b(?<!(?:\\|rm{))(not)?((?:big)?(?:(?:sq)?cap|(?:sq)?cup|oplus|otimes|wedge|vee)|approx|because|colon(?:eqq)?|equiv|eqqcolon|iff|implie(?:s|dby)|in(?:tersect)?|forall|land|lnot|lor|mapsto|models|perp|propto|therefore|top|union)` "Math Characters (explicit not)" A
 \\``rv = (m[1] ? "not\\" : "") + m[2]``
 endsnippet
 
@@ -466,7 +459,12 @@ snippet `(?:lr[apcbv]|[aA]bs|[cC]eil|[fF]loor|[nN]orm|<>)` "Dynamic Limiters" A
 ``rv = `${getElse(dynamicLimiters, `${m[0]}l`)} ${snip.tabstop(1)} ${getElse(dynamicLimiters, `${m[0]}r`)}```
 endsnippet
 
-snippet `(?<=\\)(?:bold|chapter|code|emph|italic|section|strike|under(?:line)?)` "Non-math Types" A
+context mathFlag
+snippet `(?<=\\)(?:bold|italic)` "Math Types (Text Type Equivalents)" A
+``rv = getElse(textTypes, m[0] + "b")``{$1}
+endsnippet
+
+snippet `(?<=\\)(?:bold|chapter|code|emph|italic|section|strike|underline)` "Non-math Types" A
 ``rv = getElse(textTypes, m[0])``{$1}
 endsnippet
 
@@ -522,12 +520,12 @@ const operator = m[1],
 endsnippet
 
 context mathFlag
-snippet `(?<![\\a-zA-Z])(?://|__|\^\\\^|bin|choose|colou?r|correction)$` "Two Argument Expansions" A
+snippet `(?<![\\a-zA-Z])(?://|__|\^\\\^|bin|choose|color|correction)$` "Two Argument Expansions" A
 \``rv = getElse(argumentFunctions, m[0])``{$1}{$2}
 endsnippet
 
 context mathFlag
-snippet `(?:(?<=[\(\[\s])([^\s\(\[]+))\d(\w)?\.{2}` "List of Terms" iA
+snippet `(?:(?<=[\(\[\s])([^\s\(\[]*))\d(\w)?\.{2}` "List of Terms" iA
 ``
 const term = m[1] ? formatStr(m[1]) : "";
 let order = 1;
@@ -583,7 +581,7 @@ rv += formatStr(` \\, \\mathrm{d}${snip.tabstop(0, "x")}`);
 endsnippet
 
 context mathFlag
-snippet `(?<![\\a-zA-Z])(?:[Ss]um|[Pp]rod|lim|Cup|Cap|Vee|Wedge|O[+*])` "Sums, Limits, Products" A
+snippet `(?<![\\a-zA-Z])(?:[Ss]um|[Pp]rod|lim|Cup|Cap|Vee|Wedge|O[+*]|bcup|bcap)` "Sums, Limits, Products" A
 ``
 const upper = capitalise(m[0]) === m[0],
 	name = getElse(limprods, m[0].toLowerCase());
@@ -604,7 +602,7 @@ rv = r;
 endsnippet
 
 context !mathFlag
-snippet `\\(?:correction|n?lecture|topstr)$` "Two Argument Expansions (Non-math)" A
+snippet `\\(?:correction|n?lecture|topstr|color)$` "Two Argument Expansions (Non-math)" A
 \``rv = getElse(argumentFunctions, m[0])``{$1}{$2}
 endsnippet
 
@@ -725,7 +723,28 @@ snippet `array([1-9]) ([1-9])` "Array environment" A
 endsnippet
 
 context mathFlag
-snippet `([bp])mat([1-9]) ([1-9])` "Matrices" A
+snippet `([bpBvV])smat([1-9]) ([1-9])` "Matrices" A
+\begin{``rv = m[1]``smallmatrix}
+	``
+	const nrow = m[2],
+		ncol = m[3];
+	let	r = "",
+		order = 1;
+		for (let i = 0; i < nrow - 1; i++) {
+			for(let j = 0; j < ncol - 1; j++)
+				r += `${snip.tabstop(order++)} & `;
+			r += `${snip.tabstop(order++)} \\\\\\\n	`;
+		}
+		for (let j = 0; j < ncol - 1; j++)
+			r += `${snip.tabstop(order++)} & `;
+		r += `${snip.tabstop(order++)} \\\\\\`;
+		rv = r;
+	``
+\end{``rv = m[1]``smallmatrix}
+endsnippet
+
+context mathFlag
+snippet `([bpBvV])mat([1-9]) ([1-9])` "Matrices" A
 \begin{``rv = m[1]``matrix}[``
 	const len = m[3];
 	let	order = 1,
@@ -788,21 +807,21 @@ snippet `(m)?table([1-9]{1})\ ([1-9]{1})` "Tables" A
 \end{table}
 endsnippet
 
-snippet `\\(([nm])?(?:algorithm|corollary|definition|example|exercise|explanation|lemma|proof|property|proposition|theorem)|(?:align\*|answer|claim|conjecture|goal|idea|intuition|investigation|notation|note|notice|observation|problem|question|recall|remark|solution|split|summary))$` "Common Environments" A
+snippet `\\(([nm])?(?:algorithm|corollary|definition|example|exercise|explanation|lemma|proof|proposition|theorem)|(?:align\*|answer|claim|conjecture|goal|idea|intuition|investigation|notation|note|notice|observation|problem|question|recall|remark|solution|split|summary))$` "Common Environments" A
 ``
 const name = getElse(environments[2], m[1]),
-	label = capitalise(name) + " \\the" + name,
 	toc = !environments[0].has(m[1]), 
 	nam = m[2] == 'm', 
-	num = !environments[1].has(m[1]);
+	num = !environments[1].has(m[1])
+	label = capitalise(name) + " \\themy" + name + (name == "proof" ? (nam || toc ? "A" : "B"): "");
 let	order = 1;
-	rv = `\\begin{${name}}`
+	rv = `\\begin{${name == "align\*" ? "" : "my"}${name}}`
 	+ `${(toc ? `[\\texorpdfstring{${snip.tabstop(order)}}{}]` : "")}` 
 	+ `${(num ? `\\label{${label}}\n` : "")}` 
 	+ `${(toc ? `\\addcontentsline{toc}{subsection}{\\texorpdfstring{${label} \\ - ${snip.tabstop(order)}}{${label} \\ - ${snip.tabstop(order++)}}}\n` : "")}`
 	+ `${(nam ? `\\addcontentsline{toc}{subsection}{\\texorpdfstring{${label}}{${label}}}\n` : "")}`
 	+ `${num ? "" : "\n"}${snip.tabstop(0)}\n`
-	+ `\\end{${name}}`;
+	+ `\\end{${name == "align\*" ? "" : "my"}${name}}`;
 ``
 endsnippet
 
